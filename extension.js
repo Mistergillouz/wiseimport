@@ -182,8 +182,9 @@ Helper.findImport = (document, editor, word) => {
 		let message = null
 		if (result.length === 0) {
 			message = `"${word}.js" not found in the workspace file system!`
-		} else if( result.length > 1) {
-			message = `Too much results for "${word}.js" (${result.length})`
+		} else if (result.length > 1) {
+			const files = result.map((entry) => entry.fsPath)
+			message = `Too much results for "${word}.js" (${files.join(', ')})`
 		} else {
 			let fileName = new String(result[0].fsPath)
 			let index = fileName.lastIndexOf('.')
@@ -242,11 +243,6 @@ function activate(context) {
 			if (word) {
 				Helper.findImport(document, editor, word)
 			}
-
-			// editor.edit((editBuilder) => {
-			// 	const position = new vscode.Position(0, 0)
-			// 	editBuilder.insert(position, 'test')
-			// })
 		}
 	});
 
