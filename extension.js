@@ -163,7 +163,7 @@ Helper.getDefines = (document) => {
 Helper.findImport = (document, editor, word) => {
 	const defineInfos = Helper.getDefines(document)
 	if (!defineInfos) {
-		vscode.window.showInformationMessage('Cannot locate define section!')
+		vscode.window.showInformationMessage('Cannot locate sap.ui.define() section!')
 		return null
 	}
 
@@ -171,6 +171,7 @@ Helper.findImport = (document, editor, word) => {
 	// Find if already defined
 	const found = defineInfos.parameters.some((parameter) => parameter.toLowerCase().endsWith(word.toLowerCase()))
 	if (found) {
+		vscode.window.showInformationMessage(`Import "${word}" already exists!`)
 		return false
 	}
 
@@ -180,7 +181,7 @@ Helper.findImport = (document, editor, word) => {
 	.then((result) => {
 		let message = null
 		if (result.length === 0) {
-			message = `"${word}.js" as not been found in the workspace file system!`
+			message = `"${word}.js" not found in the workspace file system!`
 		} else if( result.length > 1) {
 			message = `Too much results for "${word}.js" (${result.length})`
 		} else {
@@ -194,7 +195,7 @@ Helper.findImport = (document, editor, word) => {
 				fileName = fileName.substring(index + 1)
 			}
 
-			message = `${word} - ${fileName} has been added into the define section`
+			message = `${fileName} has been added into the define section`
 
 			editor.edit((editBuilder) => {
 				let parameter = word
