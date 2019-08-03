@@ -4,10 +4,12 @@ const vscode = require('vscode');
 
 const Helper = {}
 const EXCLUDES = [
-	'**/node_modules/**',
-	'**/resources/**',
-	'**/dist/**'
+	'/node_modules/',
+	'/resources/',
+	'/dist/'
 ]
+
+Helper.filterFiles = (files) => files.filter((fileName) => EXCLUDES.every((exclude) => fileName.path.indexOf(exclude) === -1))
 
 Helper.split = (text, sep) => {
 	let results = []
@@ -176,43 +178,44 @@ Helper.findImport = (document, editor, word) => {
 	}
 
 	const glob = `**/${word}.js`
-	//const glob = '**/test.txt'
-	vscode.workspace.findFiles(glob, '**/node_modules/**', 10)
+	vscode.workspace.findFiles(glob, '**/node_modules/**', 100)
 	.then((result) => {
 		let message = null
-		if (result.length === 0) {
+		const files = Helper.filterFiles(result)
+		if (files.length === 0) {
 			message = `"${word}.js" not found in the workspace file system!`
-		} else if (result.length > 1) {
-			const files = result.map((entry) => entry.fsPath)
-			message = `Too much results for "${word}.js" (${files.join(', ')})`
 		} else {
-			let fileName = new String(result[0].fsPath)
-			let index = fileName.lastIndexOf('.')
-			if (index !== -1) {
-				fileName = fileName.substring(0, index)
-			}
-			index = fileName.indexOf(':')
-			if (index !== -1) {
-				fileName = fileName.substring(index + 1)
-			}
-
-			message = `${fileName} has been added into the define section`
-
-			editor.edit((editBuilder) => {
-				let parameter = word
-				// Replace \ by /
-				let importText = `\'${fileName}\'`.replace(/\\/g, '/')
-				if (defineInfos.parameters.length) {
-					importText = `,\n${defineInfos.importFiller}${importText}`
-					parameter = `,\n${defineInfos.filler}${parameter}`
+			if (files.length > 1) {
+				message = `Too much results for "${word}.js" (${files.join(', ')})`
+			} else {
+				let fileName = new String(result[0].path)
+				let index = fileName.lastIndexOf('.')
+				if (index !== -1) {
+					fileName = fileName.substring(0, index)
 				}
-				// Insert import line
-				const position = new vscode.Position(defineInfos.importPoint.y, defineInfos.importPoint.x)
-				editBuilder.insert(position, importText)
-				// Insert new function() parameter
-				const parameterPosition = new vscode.Position(defineInfos.parensPoint.y, defineInfos.parensPoint.x)
-				editBuilder.insert(parameterPosition, parameter)
-			})
+				index = fileName.indexOf(':')
+				if (index !== -1) {
+					fileName = fileName.substring(index + 1)
+				}
+
+				message = `${fileName} has been added into the define section`
+
+				editor.edit((editBuilder) => {
+					let parameter = word
+					// Replace \ by /
+					let importText = `\'${fileName}\'`
+					if (defineInfos.parameters.length) {
+						importText = `,\n${defineInfos.importFiller}${importText}`
+						parameter = `,\n${defineInfos.filler}${parameter}`
+					}
+					// Insert import line
+					const position = new vscode.Position(defineInfos.importPoint.y, defineInfos.importPoint.x)
+					editBuilder.insert(position, importText)
+					// Insert new function() parameter
+					const parameterPosition = new vscode.Position(defineInfos.parensPoint.y, defineInfos.parensPoint.x)
+					editBuilder.insert(parameterPosition, parameter)
+				})
+			}
 		}
 
 		vscode.window.showInformationMessage(message)
