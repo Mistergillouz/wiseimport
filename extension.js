@@ -123,6 +123,8 @@ Helper.getDefines = (document) => {
 		return null
 	}
 
+	importPoint = Helper.toLastCharacter(document, importPoint)
+
 	let text = Helper.getText(document, point.y, point.x + 1, importPoint.y, importPoint.x)
 	const imports = Helper.split(text, ',')
 	const importFiller = Helper.getFiller(imports)
