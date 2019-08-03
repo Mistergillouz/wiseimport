@@ -172,8 +172,8 @@ Helper.findImport = (document, editor, word) => {
 		return false
 	}
 
-	// const glob = `**/${word}.js`
-	const glob = '**/test.txt'
+	const glob = `**/${word}.js`
+	//const glob = '**/test.txt'
 	vscode.workspace.findFiles(glob, EXCLUDES, 10)
 	.then((result) => {
 		let message = null
