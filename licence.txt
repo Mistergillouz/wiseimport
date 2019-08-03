@@ -1,0 +1,5 @@
+ekcn3rn2zfjic5lmsmkdvekd3233rorjaovp5wcqdie2er67mpba
+
+https://marketplace.visualstudio.com/items?itemName=WiseImport.wiseimport
+
+vsce publish -p ekcn3rn2zfjic5lmsmkdvekd3233rorjaovp5wcqdie2er67mpba

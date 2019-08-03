@@ -180,7 +180,7 @@ Helper.findImport = (document, editor, word) => {
 		if (result.length === 0) {
 			message = `"${word}.js" as not been found in the workspace file system!`
 		} else if( result.length > 1) {
-			message = `Too much results (${result.length})`
+			message = `Too much results for "${word}.js" (${result.length})`
 		} else {
 			let fileName = new String(result[0].fsPath)
 			let index = fileName.lastIndexOf('.')

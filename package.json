@@ -1,8 +1,10 @@
 {
 	"name": "wiseimport",
+	"publisher": "WiseImport",
+	"icon": "images/logo.png",
 	"displayName": "wiseimport",
 	"description": "",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"engines": {
 		"vscode": "^1.36.0"
 	},
@@ -15,9 +17,17 @@
 	"main": "./extension.js",
 	"contributes": {
 		"commands": [{
-            "command": "extension.wiseimport",
-			"title": "Wise Import"
-		}]
+      "command": "extension.wiseimport",
+			"title": "DeLuxeWise Import"
+		}],
+		"keybindings": [
+			{
+					"command": "extension.wiseimport",
+					"key": "ctrl+shift+i",
+					"mac": "shift+cmd+i",
+					"when": "editorTextFocus"
+			}
+		]
 	},
 	"scripts": {
 		"test": "node ./test/runTest.js"
