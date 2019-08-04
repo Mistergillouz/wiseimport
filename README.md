@@ -1,15 +1,11 @@
 ## Features
 
-On a shortcut automaticaly add an import in the sap.ui.define() section
+This vscode addon automaticaly add an import line in the sap.ui.define() section as well adding it as variable in the function() statements
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+You can change the default shortcut (CTRL+SHIFT+i), in Preferences/Keyboard Shortcuts, search for 'wiseimport'
 
-For example:
+## Bugs
 
-This extension contributes the following settings:
-
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
-
+Feel free to test it and use it :)
