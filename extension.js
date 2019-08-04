@@ -20,6 +20,7 @@ const Winners = {
 	},
 	WEBAPP: {
 		text: '/webapp/',
+		deleteText: true,
 		prefix: 'sap/bi/webi/'
 	}
 }
@@ -60,6 +61,9 @@ Helper.findWinner = (files, winner) => {
 	const file = files.find((file) => file.path.toLowerCase().indexOf(winner.text) !== -1)
 	if (file) {
 		let index = file.path.toLowerCase().indexOf(winner.text)
+		if (winner.deleteText) {
+			index += winner.text.length
+		}
 		result = file.path.substring(index)
 		if (result.charAt(0) === '/') {
 			result = result.substring(1)
