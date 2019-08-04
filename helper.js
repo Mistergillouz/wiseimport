@@ -198,8 +198,11 @@ Helper.toLastCharacter = (document, point) => {
 	let comma = false
 	let line = document.lineAt(y).text.substring(0, x)
 	while (line.trim().length === 0) {
+		line = document.lineAt(y - 1).text
+		if (line.lastIndexOf('//') !== -1) {
+			break
+		}
 		y -= 1
-		line = document.lineAt(y).text
 		x = line.length
 		comma = line.trim().endsWith(',')
 	}
