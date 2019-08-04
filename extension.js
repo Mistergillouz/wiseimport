@@ -9,7 +9,90 @@ const EXCLUDES = [
 	'/dist/'
 ]
 
-Helper.filterFiles = (files) => files.filter((fileName) => EXCLUDES.every((exclude) => fileName.path.indexOf(exclude) === -1))
+const Winners = {
+	SAPUI5: {
+		text: '/sap/m/',
+		prefix: ''
+	},
+	SAP_BI_WEBI: {
+		text: '/sap/bi/webi/',
+		prefix: ''
+	},
+	WEBAPP: {
+		text: '/webapp/',
+		prefix: 'sap/bi/webi/'
+	}
+}
+
+const HARD_CODED = {
+	ActionDispatcher: 'sap/bi/smart/core/action/ActionDispatcher',
+  ActionRegistry: 'sap/bi/smart/core/action/ActionRegistry',
+	StoreRegistry: 'sap/bi/smart/core/store/StoreRegistry',
+	Logger: 'sap/bi/smart/core/Logger'
+}
+
+Helper.processFile = (editor, defineInfos, fileName, word) => {
+	let message = null
+	if (!fileName) {
+		message = `"${word}.js" not found in the workspace file system!`
+	} else {
+		message = `${fileName} has been added into the define section`
+		editor.edit((editBuilder) => {
+			let parameter = word
+			let importText = `\'${fileName}\'`
+			if (defineInfos.parameters.length) {
+				importText = `,\n${defineInfos.importFiller}${importText}`
+				parameter = `,\n${defineInfos.filler}${parameter}`
+			}
+			// Insert import line
+			const position = new vscode.Position(defineInfos.importPoint.y, defineInfos.importPoint.x)
+			editBuilder.insert(position, importText)
+			// Insert new function() parameter
+			const parameterPosition = new vscode.Position(defineInfos.parensPoint.y, defineInfos.parensPoint.x)
+			editBuilder.insert(parameterPosition, parameter)
+		})
+	}
+	vscode.window.showInformationMessage(message)
+}
+
+Helper.findWinner = (files, winner) => {
+	let result = null
+	const file = files.find((file) => file.path.toLowerCase().indexOf(winner.text) !== -1)
+	if (file) {
+		let index = file.path.toLowerCase().indexOf(winner.text)
+		result = file.path.substring(index)
+		if (result.charAt(0) === '/') {
+			result = result.substring(1)
+		}
+
+		let prefix = winner.prefix
+		if (prefix && !prefix.endsWith('/')) {
+			prefix += '/'
+		}
+
+		result = winner.prefix + result
+		index = result.lastIndexOf('.')
+		if (index !== -1) {
+			result = result.substring(0, index)
+		}
+	}
+
+	return result
+}
+
+Helper.getTarget = (files) => {
+	let target = null
+	Object.values(Winners).some((winner) => {
+		target = Helper.findWinner(files, winner)
+		return target
+	})
+
+	if (target) {
+		return target
+	}
+
+	return null
+}
 
 Helper.split = (text, sep) => {
 	let results = []
@@ -177,49 +260,23 @@ Helper.findImport = (document, editor, word) => {
 		return false
 	}
 
-	const glob = `**/${word}.js`
-	vscode.workspace.findFiles(glob, '**/node_modules/**', 100)
-	.then((result) => {
-		let message = null
-		const files = Helper.filterFiles(result)
-		if (files.length === 0) {
-			message = `"${word}.js" not found in the workspace file system!`
-		} else {
-			if (files.length > 1) {
-				message = `Too much results for "${word}.js" (${files.join(', ')})`
-			} else {
-				let fileName = new String(result[0].path)
-				let index = fileName.lastIndexOf('.')
-				if (index !== -1) {
-					fileName = fileName.substring(0, index)
-				}
-				index = fileName.indexOf(':')
-				if (index !== -1) {
-					fileName = fileName.substring(index + 1)
-				}
-
-				message = `${fileName} has been added into the define section`
-
-				editor.edit((editBuilder) => {
-					let parameter = word
-					// Replace \ by /
-					let importText = `\'${fileName}\'`
-					if (defineInfos.parameters.length) {
-						importText = `,\n${defineInfos.importFiller}${importText}`
-						parameter = `,\n${defineInfos.filler}${parameter}`
-					}
-					// Insert import line
-					const position = new vscode.Position(defineInfos.importPoint.y, defineInfos.importPoint.x)
-					editBuilder.insert(position, importText)
-					// Insert new function() parameter
-					const parameterPosition = new vscode.Position(defineInfos.parensPoint.y, defineInfos.parensPoint.x)
-					editBuilder.insert(parameterPosition, parameter)
-				})
-			}
+	const hardCoded = Object.keys(HARD_CODED).some((key) => {
+		if (key.toLowerCase() === word.toLowerCase()) {
+			Helper.processFile(editor, defineInfos, HARD_CODED[key], key)
+			return true
 		}
 
-		vscode.window.showInformationMessage(message)
+		return false
 	})
+
+	if (!hardCoded) {
+		const glob = `**/${word}.js`
+		vscode.workspace.findFiles(glob, '**/node_modules/**', 100)
+		.then((files) => {
+			const fileName = Helper.getTarget(files)
+			Helper.processFile(editor, defineInfos, fileName, word)
+		})
+	}
 }
 
 
