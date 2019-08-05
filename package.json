@@ -12,14 +12,19 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:extension.wiseimport"
+    "onCommand:extension.wiseimport",
+    "onCommand:extension.wiseopen"
   ],
   "main": "./extension.js",
   "contributes": {
     "commands": [
       {
         "command": "extension.wiseimport",
-        "title": "DeLuxeWise Import"
+        "title": "Wise Import"
+      },
+      {
+        "command": "extension.wiseopen",
+        "title": "Wise Open"
       }
     ],
     "keybindings": [
@@ -27,6 +32,12 @@
         "command": "extension.wiseimport",
         "key": "ctrl+shift+i",
         "mac": "shift+cmd+i",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "extension.wiseopen",
+        "key": "alt+o",
+        "mac": "alt+o",
         "when": "editorTextFocus"
       }
     ]

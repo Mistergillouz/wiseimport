@@ -31,6 +31,22 @@ const HARD_CODED = {
 	Logger: 'sap/bi/smart/core/Logger'
 }
 
+Helper.openFile = (word) => {
+	const glob = `**/${word}.js`
+	vscode.workspace.findFiles(glob, '**/node_modules/**', 100)
+	.then((files) => {
+		const target = Helper.getTarget(files)
+		if (target) {
+			vscode.workspace.openTextDocument(target.path).then(doc => {
+				vscode.window.showTextDocument(doc)
+				vscode.window.showInformationMessage(`${target.path} opened.`)
+			})
+		} else {
+			vscode.window.showInformationMessage(`Cannot open file name "${word}".`)
+		}
+	})
+}
+
 Helper.processFile = (editor, defineInfos, fileName, word) => {
 	let message = null
 	if (!fileName) {
@@ -71,9 +87,9 @@ Helper.findWinner = (files, winner) => {
 		if (winner.deleteText) {
 			index += winner.text.length
 		}
-		result = file.path.substring(index)
-		if (result.charAt(0) === '/') {
-			result = result.substring(1)
+		let importPath = file.path.substring(index)
+		if (importPath.charAt(0) === '/') {
+			importPath = importPath.substring(1)
 		}
 
 		let prefix = winner.prefix
@@ -81,11 +97,13 @@ Helper.findWinner = (files, winner) => {
 			prefix += '/'
 		}
 
-		result = winner.prefix + result
-		index = result.lastIndexOf('.')
+		importPath = winner.prefix + importPath
+		index = importPath.lastIndexOf('.')
 		if (index !== -1) {
-			result = result.substring(0, index)
+			importPath = importPath.substring(0, index)
 		}
+
+		result = { importFile: importPath, path: file.path }
 	}
 
 	return result
@@ -98,13 +116,7 @@ Helper.getTarget = (files) => {
 		return target
 	})
 
-	if (target) {
-		return target
-	}
-
-	//const filtered = files.filter((file) => EXCLUDES.some((exclude) => file.path.toLowerCase().indexOf(exclude) !== -1))
-
-	return null
+	return target
 }
 
 Helper.split = (text, sep) => {
@@ -291,8 +303,8 @@ Helper.findImport = (document, editor, word) => {
 		const glob = `**/${word}.js`
 		vscode.workspace.findFiles(glob, '**/node_modules/**', 100)
 		.then((files) => {
-			const fileName = Helper.getTarget(files)
-			Helper.processFile(editor, defineInfos, fileName, word)
+			const target = Helper.getTarget(files) || {}
+			Helper.processFile(editor, defineInfos, target.importFile, word)
 		})
 	}
 }

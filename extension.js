@@ -24,7 +24,6 @@ function activate(context) {
 
 			// Get the word within the selection
 			let word = Helper.getWordAtCursor(document, selection)
-			console.log('Word', word)
 			if (word) {
 				Helper.findImport(document, editor, word)
 			}
@@ -32,6 +31,24 @@ function activate(context) {
 	});
 
 	context.subscriptions.push(disposable);
+
+	let disposable2 = vscode.commands.registerCommand('extension.wiseopen', function () {
+		// Get the active text editor
+		let editor = vscode.window.activeTextEditor;
+
+		if (editor) {
+			let document = editor.document;
+			let selection = editor.selection;
+
+			// Get the word within the selection
+			let word = Helper.getWordAtCursor(document, selection)
+			if (word) {
+				Helper.openFile(word)
+			}
+		}
+	});
+
+	context.subscriptions.push(disposable2);
 }
 
 
