@@ -35,7 +35,7 @@ Helper.openFile = (word) => {
 	const glob = `**/${word}.js`
 	vscode.workspace.findFiles(glob, '**/node_modules/**', 100)
 	.then((files) => {
-		const target = Helper.getTarget(files)
+		const target = Helper.getOpenTarget(files)
 		if (target) {
 			vscode.workspace.openTextDocument(target.path).then(doc => {
 				vscode.window.showTextDocument(doc)
@@ -107,6 +107,17 @@ Helper.findWinner = (files, winner) => {
 	}
 
 	return result
+}
+
+Helper.getOpenTarget = (files) => {
+	let target = null
+	if (files.length === 1) {
+		target = { path: files[0].path }
+	} else {
+		target = Helper.getTarget(files)
+	}
+
+	return target
 }
 
 Helper.getTarget = (files) => {
