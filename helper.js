@@ -110,11 +110,9 @@ Helper.findWinner = (files, winner) => {
 }
 
 Helper.getOpenTarget = (files) => {
-	let target = null
-	if (files.length === 1) {
+	let target = Helper.getTarget(files)
+	if (!target && files.length) {
 		target = { path: files[0].path }
-	} else {
-		target = Helper.getTarget(files)
 	}
 
 	return target
