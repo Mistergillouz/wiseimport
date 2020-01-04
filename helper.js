@@ -9,20 +9,17 @@ const Helper = {}
 // ]
 
 const Winners = {
-	SAP_M: {
-		text: '/sap/m/',
-		prefix: ''
+	WISE_WING: {
+		paths: ['wise-wing/src'],
+		prefix: 'sap/bi/webi'
 	},
 	SAP_BI_WEBI: {
-		text: '/sap/bi/webi/',
+		paths: ['wise-core-flux/src', 'wise-jsapi-flux/src', 'wise-core-utils/src'],
 		prefix: ''
-	},
-	WEBAPP: {
-		text: '/webapp/',
-		deleteText: true,
-		prefix: 'sap/bi/webi/'
 	}
 }
+
+
 
 const HARD_CODED = {
 	ActionDispatcher: 'sap/bi/smart/core/action/ActionDispatcher',
@@ -81,30 +78,23 @@ Helper.processFile = (editor, defineInfos, fileName, word) => {
 
 Helper.findWinner = (files, winner) => {
 	let result = null
-	const file = files.find((file) => file.path.toLowerCase().indexOf(winner.text) !== -1)
-	if (file) {
-		let index = file.path.toLowerCase().indexOf(winner.text)
-		if (winner.deleteText) {
-			index += winner.text.length
-		}
-		let importPath = file.path.substring(index)
-		if (importPath.charAt(0) === '/') {
-			importPath = importPath.substring(1)
+
+	files.some((file) => {
+		const foundPath = winner.paths.find((path) => file.path.toLowerCase().indexOf(path) !== -1)
+		if (foundPath) {
+			const index = file.path.toLowerCase().indexOf(foundPath) + foundPath.length
+			let importPath = winner.prefix + file.path.substring(index)
+			const dot = importPath.lastIndexOf('.')
+			if (dot !== -1) {
+				importPath = importPath.substring(0, dot)
+			}
+			result = { importFile: importPath, path: file.path }
+			return true
 		}
 
-		let prefix = winner.prefix
-		if (prefix && !prefix.endsWith('/')) {
-			prefix += '/'
-		}
+		return false
+	})
 
-		importPath = winner.prefix + importPath
-		index = importPath.lastIndexOf('.')
-		if (index !== -1) {
-			importPath = importPath.substring(0, index)
-		}
-
-		result = { importFile: importPath, path: file.path }
-	}
 
 	return result
 }

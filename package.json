@@ -43,7 +43,7 @@
     ]
   },
   "scripts": {
-    "test": "node ./test/runTest.js"
+    "build": "vsce package"
   },
   "devDependencies": {
     "@types/glob": "^7.1.1",
