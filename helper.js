@@ -88,6 +88,10 @@ Helper.findWinner = (files, winner) => {
 			if (dot !== -1) {
 				importPath = importPath.substring(0, dot)
 			}
+			if (importPath.startsWith('/')) {
+				importPath = importPath.substring(1)
+			}
+			
 			result = { importFile: importPath, path: file.path }
 			return true
 		}
