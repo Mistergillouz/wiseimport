@@ -23,7 +23,7 @@ const Winners = {
 
 const HARD_CODED = {
 	ActionDispatcher: 'sap/bi/smart/core/action/ActionDispatcher',
-  ActionRegistry: 'sap/bi/smart/core/action/ActionRegistry',
+	ActionRegistry: 'sap/bi/smart/core/action/ActionRegistry',
 	StoreRegistry: 'sap/bi/smart/core/store/StoreRegistry',
 	Logger: 'sap/bi/smart/core/Logger'
 }
@@ -31,17 +31,17 @@ const HARD_CODED = {
 Helper.openFile = (word) => {
 	const glob = `**/${word}.js`
 	vscode.workspace.findFiles(glob, '**/node_modules/**', 100)
-	.then((files) => {
-		const target = Helper.getOpenTarget(files)
-		if (target) {
-			vscode.workspace.openTextDocument(target.path).then(doc => {
-				vscode.window.showTextDocument(doc)
-				vscode.window.showInformationMessage(`${target.path} opened.`)
-			})
-		} else {
-			vscode.window.showInformationMessage(`Cannot open file name "${word}".`)
-		}
-	})
+		.then((files) => {
+			const target = Helper.getOpenTarget(files)
+			if (target) {
+				vscode.workspace.openTextDocument(target.path).then(doc => {
+					vscode.window.showTextDocument(doc)
+					vscode.window.showInformationMessage(`${target.path} opened.`)
+				})
+			} else {
+				vscode.window.showInformationMessage(`Cannot open file name "${word}".`)
+			}
+		})
 }
 
 Helper.processFile = (editor, defineInfos, fileName, word) => {
@@ -51,26 +51,33 @@ Helper.processFile = (editor, defineInfos, fileName, word) => {
 	} else {
 		message = `${fileName} has been added into the define section`
 		editor.edit((editBuilder) => {
-			let parameter = word
-			let importText = `\'${fileName}\'`
-			if (defineInfos.parameters.length) {
-				let parameterComma = ''
-				let importComma = ''
-				if (!defineInfos.importPoint.comma) {
-					importComma = ','
+			debugger
+			if (defineInfos.method === 'import') {
+				const position = new vscode.Position(defineInfos.insertLine, 0)
+				const importText = `import ${word} from '${fileName}'\n`
+				editBuilder.insert(position, importText)
+			} else {
+				let parameter = word
+				let importText = `\'${fileName}\'`
+				if (defineInfos.parameters.length) {
+					let parameterComma = ''
+					let importComma = ''
+					if (!defineInfos.importPoint.comma) {
+						importComma = ','
+					}
+					if (!defineInfos.parensPoint.comma) {
+						parameterComma = ','
+					}
+					importText = `${importComma}\n${defineInfos.importFiller}${importText}`
+					parameter = `${parameterComma}\n${defineInfos.filler}${parameter}`
 				}
-				if (!defineInfos.parensPoint.comma) {
-					parameterComma = ','
-				}
-				importText = `${importComma}\n${defineInfos.importFiller}${importText}`
-				parameter = `${parameterComma}\n${defineInfos.filler}${parameter}`
+				// Insert import line
+				const position = new vscode.Position(defineInfos.importPoint.y, defineInfos.importPoint.x)
+				editBuilder.insert(position, importText)
+				// Insert new function() parameter
+				const parameterPosition = new vscode.Position(defineInfos.parensPoint.y, defineInfos.parensPoint.x)
+				editBuilder.insert(parameterPosition, parameter)
 			}
-			// Insert import line
-			const position = new vscode.Position(defineInfos.importPoint.y, defineInfos.importPoint.x)
-			editBuilder.insert(position, importText)
-			// Insert new function() parameter
-			const parameterPosition = new vscode.Position(defineInfos.parensPoint.y, defineInfos.parensPoint.x)
-			editBuilder.insert(parameterPosition, parameter)
 		})
 	}
 	vscode.window.showInformationMessage(message)
@@ -91,7 +98,7 @@ Helper.findWinner = (files, winner) => {
 			if (importPath.startsWith('/')) {
 				importPath = importPath.substring(1)
 			}
-			
+
 			result = { importFile: importPath, path: file.path }
 			return true
 		}
@@ -227,10 +234,14 @@ Helper.toLastCharacter = (document, point) => {
 
 Helper.getDefines = (document) => {
 	let point = Helper.search(document, 'sap.ui.define')
-	if (!point) {
-		return null
+	if (point) {
+		return Helper.getDefineSection(document)
 	}
 
+	return Helper.getImportSection(document)
+}
+
+Helper.getDefineSection = (document) => {
 	point = Helper.search(document, '[', point)
 	if (!point) {
 		return null
@@ -270,6 +281,7 @@ Helper.getDefines = (document) => {
 	const filler = Helper.getFiller(parameters)
 
 	return {
+		method: 'define',
 		importPoint,
 		parensPoint,
 		parameters: parameters.map((parameter) => parameter.trim()),
@@ -277,6 +289,31 @@ Helper.getDefines = (document) => {
 		filler
 	}
 }
+
+Helper.getImportSection = (document) => {
+	let insertLine = -1
+	const regex = /import (?<variable>\w+)\s+from\s+'(?<path>.*?[^\\])'/
+
+	const parameters = []
+	for (let lineIndex = 0; lineIndex < document.lineCount; lineIndex++) {
+		const { text } = document.lineAt(lineIndex)
+		const result = regex.exec(text)
+		if (!result || !result.groups.variable || !result.groups.path) {
+			continue
+		}
+
+		parameters.push(result.groups.variable)
+		insertLine = lineIndex
+	}
+
+
+	return {
+		method: 'import',
+		parameters,
+		insertLine: insertLine + 1
+	}
+}
+
 
 Helper.findImport = (document, editor, word) => {
 	const defineInfos = Helper.getDefines(document)
@@ -305,10 +342,10 @@ Helper.findImport = (document, editor, word) => {
 	if (!hardCoded) {
 		const glob = `**/${word}.js`
 		vscode.workspace.findFiles(glob, '**/node_modules/**', 100)
-		.then((files) => {
-			const target = Helper.getTarget(files) || {}
-			Helper.processFile(editor, defineInfos, target.importFile, word)
-		})
+			.then((files) => {
+				const target = Helper.getTarget(files) || {}
+				Helper.processFile(editor, defineInfos, target.importFile, word)
+			})
 	}
 }
 
