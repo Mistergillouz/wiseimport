@@ -49,7 +49,6 @@ Helper.processFile = (editor, defineInfos, fileName, word) => {
   } else {
     message = `${fileName} has been added into the define section`
     editor.edit((editBuilder) => {
-      debugger
       if (defineInfos.method === 'import') {
         const position = new vscode.Position(defineInfos.insertLine, 0)
         const importText = `import ${word} from '${fileName}'\n`
