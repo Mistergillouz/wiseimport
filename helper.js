@@ -232,14 +232,14 @@ Helper.toLastCharacter = (document, point) => {
 Helper.getDefines = (document) => {
   let point = Helper.search(document, 'sap.ui.define')
   if (point) {
-    return Helper.getDefineSection(document)
+    return Helper.getDefineSection(point, document)
   }
 
   return Helper.getImportSection(document)
 }
 
-Helper.getDefineSection = (document) => {
-  point = Helper.search(document, '[', point)
+Helper.getDefineSection = (_point, document) => {
+  let point = Helper.search(document, '[', _point)
   if (!point) {
     return null
   }
